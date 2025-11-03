@@ -8,6 +8,7 @@ class Patient {
   String gender;
   int age;
   String contact;
+  List<Appointment> appointments = [];
 
   Patient({
     required this.id,
@@ -17,32 +18,39 @@ class Patient {
     required this.contact,
   });
 
-  void bookAppointment() {}
+  void bookAppointment(Doctor doctor, DateTime date, String reason) {}
 
-  void viewAppointents() {}
+  void viewAppointents() {
+    if (appointments.isEmpty) {
+      print("no appointment found for $name.");
+    } else {
+      print("Appointment for $name:");
+      for (var a in appointments) {
+        print("with doctor ID ${a.doctorID} on ${a.date} (${a.status})");
+      }
+    }
+  }
 }
 
 class Appointment {
   int id;
-  Date date;
-  Time time;
+  DateTime date;
   String reason;
   String status;
-  List<Doctor> doctorID;
-  List<Patient> patientID;
+  int doctorID;
+  int patientID;
 
   Appointment({
     required this.id,
     required this.date,
-    required this.time,
     required this.reason,
     required this.status,
     required this.doctorID,
     required this.patientID,
   });
-  void schedule() {}
+  void schedule() => status = "Scheduled";
 
-  void cancel() {}
+  void cancel() => status = "Cancelled";
 }
 
 class Doctor {
@@ -50,6 +58,7 @@ class Doctor {
   String name;
   String specialization;
   String contact;
+  List<Appointment> appointments = [];
 
   Doctor({
     required this.id,
@@ -57,7 +66,16 @@ class Doctor {
     required this.specialization,
     required this.contact,
   });
-  void viewAppointments() {}
+  void viewAppointments() {
+    if (appointments.isEmpty) {
+      print("Not fount appointment");
+    } else {
+      print("Appoint for $name");
+      for (var d in appointments) {
+        print("PatientId: ${d.patientID}, date:${d.date}, status: ${d.status}");
+      }
+    }
+  }
 
   void createMeeting() {}
 }
