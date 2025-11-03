@@ -1,3 +1,7 @@
+import 'package:uuid/uuid.dart';
+
+var uuid = Uuid();
+
 class Patient {
   int id;
   String name;
