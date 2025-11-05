@@ -39,5 +39,7 @@ void main() {
   }
 }
 
-void patientMenu(Patient patient, Doctor doctor) {}
+void patientMenu(Patient patient, Doctor doctor) {
+  
+}
 void doctorMenu(Doctor doctor, Patient patient) {}
