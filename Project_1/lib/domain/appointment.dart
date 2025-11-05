@@ -76,10 +76,27 @@ class Appointment {
   void schedule() => status = AppointmentStatus.scheduled;
 
   void cancel() => status = AppointmentStatus.cancelled;
+  // the doctor ready have this function
+  void rescheduleAppointment(DateTime newDate, DateTime newTime) {
+    date = DateTime(
+      newDate.year,
+      newDate.month,
+      newDate.day,
+      newTime.hour,
+      newTime.minute,
+    );
+    status = AppointmentStatus.rescheduled;
+    print("Appointment $id rescheduled to $date");
+  }
 
-  void rescheduleAppointment(DateTime newDate, DateTime newTime) {}
-
-  void viewAppointmentDetails() {}
+  void viewAppointmentDetails() {
+    print("Appointment ID: $id");
+    print("Doctor: ${doctor.name}");
+    print("Patient: ${patient.name}");
+    print("Date: $date");
+    print("Reason: $reason");
+    print("Status: $status");
+  }
 }
 
 class Doctor {
@@ -109,11 +126,25 @@ class Doctor {
     }
   }
 
-  void createMeeting(Patient patient, String notes) {
+  void createMeeting(
+    Patient patient,
+    DateTime date,
+    String reason,
+    String notes,
+  ) {
     final meeting = Meeting(
       id: DateTime.now().millisecondsSinceEpoch,
+      date: date,
+      reason: reason,
+      status: AppointmentStatus.scheduled,
+      doctor: this,
+      patient: patient,
       notes: notes,
+      participants: [this],
     );
+    appointments.add(meeting);
+    patient.appointments.add(meeting);
+    print("Meeting scheduled with ${patient.name} on $date");
   }
 
   void updateAvailability(String status) {
@@ -121,24 +152,29 @@ class Doctor {
   }
 }
 
-class Meeting {
-  int id;
+class Meeting extends Appointment {
   String notes;
+  List<Doctor> participants;
 
-  Meeting({required this.id, required this.notes});
+  Meeting({
+    required super.id,
+    required super.date,
+    required super.reason,
+    required super.status,
+    required super.doctor,
+    required super.patient,
+    this.notes = '',
+    this.participants = const [],
+  });
 
   void addMeetingNotes(String note) {
     notes += "\n- $note";
   }
 
-  void rescheduleMeeting(DateTime newDate, DateTime newTime) {
-    final newDateTime = DateTime(
-      newDate.year,
-      newDate.month,
-      newDate.day,
-      newTime.hour,
-      newTime.minute,
-    );
-    print("Meeting $id rescheduled to $newDateTime");
-  }
+  @override
+void rescheduleAppointment(DateTime newDate, DateTime newTime) {
+  super.rescheduleAppointment(newDate, newTime);
+  print("Notification sent to all meeting participants.");
+}
+
 }
