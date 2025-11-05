@@ -40,11 +40,6 @@ void main() {
 }
 
 void patientMenu(Patient patient, Doctor doctor) {
-<<<<<<< HEAD
-  
-}
-void doctorMenu(Doctor doctor, Patient patient) {}
-=======
   while (true) {
     print("\n=== Patient Menu ===");
     print("1. Book Appointment");
@@ -144,4 +139,3 @@ void doctorMenu(Doctor doctor, Patient patient) {
     stdin.readLineSync();
   }
 }
->>>>>>> 86fd1ecba670fdbad4f9321d28f352d569d1c078
