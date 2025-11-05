@@ -15,17 +15,33 @@ void main() {
     age: 22,
     contact: "0987654321",
   );
+  Appointment appointment = Appointment(
+    id: 1,
+    date: DateTime.now(),
+    reason: 'placeholder',
+    status: AppointmentStatus.scheduled,
+    doctor: doctor,
+    patient: patient,
+  );
+  Meeting meeting = Meeting(
+    id: 1,
+    date: DateTime.now(),
+    reason: 'placeholder meeting',
+    status: AppointmentStatus.scheduled,
+    doctor: doctor,
+    patient: patient,
+  );
   while (true) {
     print("Hopital Appointment system ");
     print("1. Login as Doctor");
-    print("2.Login as Patient");
+    print("2. Login as Patient");
     print("3. Exit");
     stdout.write("Select role: ");
     var choice = stdin.readLineSync();
 
     switch (choice) {
       case '1':
-        doctorMenu(doctor, patient);
+        doctorMenu(doctor, patient, appointment, meeting);
         break;
       case '2':
         patientMenu(patient, doctor);
@@ -125,7 +141,49 @@ void patientMenu(Patient patient, Doctor doctor) {
   }
 }
 
-void doctorMenu(Doctor doctor, Patient patient) {
+String promptString(String prompt) {
+  stdout.write(prompt);
+  String? input = stdin.readLineSync();
+  return input ?? '';
+}
+
+DateTime promptDateTime(String prompt) {
+  while (true) {
+    String dateStr = promptString(prompt);
+    try {
+      // Simple format: YYYY-MM-DD HH:MM
+      // Example: 2025-12-31 14:30
+      List<String> parts = dateStr.split(' ');
+      if (parts.length != 2)
+        throw FormatException("Invalid format. Use YYYY-MM-DD HH:MM");
+
+      List<int> date = parts[0]
+          .split('-')
+          .map((e) => int.tryParse(e) ?? 0)
+          .toList();
+      List<int> time = parts[1]
+          .split(':')
+          .map((e) => int.tryParse(e) ?? 0)
+          .toList();
+
+      if (date.length != 3 || time.length != 2)
+        throw FormatException("Invalid date or time component.");
+
+      return DateTime(date[0], date[1], date[2], time[0], time[1]);
+    } catch (e) {
+      print(
+        "Invalid date/time format. Please use YYYY-MM-DD HH:MM (e.g., 2025-12-31 14:30)",
+      );
+    }
+  }
+}
+
+void doctorMenu(
+  Doctor doctor,
+  Patient patient,
+  Appointment appointment,
+  Meeting meeting,
+) {
   while (true) {
     print("\n=== Doctor Menu ===");
     print("1. View Appointments");
@@ -136,6 +194,108 @@ void doctorMenu(Doctor doctor, Patient patient) {
     print("6. Add Meeting Note");
     print("0. Back to Main Menu");
     stdout.write("Select an option: ");
-    stdin.readLineSync();
+    final choice = stdin.readLineSync();
+
+    switch (choice) {
+      case '1':
+        print("View Appointments:");
+        doctor.viewAppointments();
+        break;
+      case '2':
+        if (doctor.appointments.isEmpty) {
+          print("No appointments");
+          break;
+        }
+        doctor.viewAppointments();
+        final idStr = promptString("Enter Appointment ID to view details: ");
+        final id = int.tryParse(idStr);
+        if (id == null) {
+          print("Invalid ID format.");
+          break;
+        }
+        final appointment = doctor.appointments.firstWhere(
+          (a) => a.id == id,
+          orElse: () => throw Exception("Appointment not found."),
+        );
+        print("\n--- Appointment Details ---");
+        appointment.viewAppointmentDetails();
+        break;
+      case '3':
+        if (doctor.appointments.isEmpty) {
+          print("No appointment to cancel");
+          break;
+        }
+        doctor.viewAppointments();
+        final idStr = promptString("Enter Appointment ID to cancel: ");
+        final id = int.tryParse(idStr);
+        if (id == null) {
+          print("Invalid ID format.");
+          break;
+        }
+        // Since the appointment is linked to the Patient use the patient's method.
+        final appointmentToCancel = doctor.appointments.firstWhere(
+          (a) => a.id == id,
+          orElse: () => throw Exception("Appointment not found."),
+        );
+        appointmentToCancel.patient.cancelAppointment(id);
+        print("Appointment $id successfully **cancelled**.");
+        break;
+
+      case '4':
+        print("Update the Availability");
+        final newstatus = promptString("Enter your new status");
+        doctor.updateAvailability(newstatus.trim());
+        break;
+      case '5':
+        print("Create Meeting");
+        final mockPatient = Patient(
+          id: 1000,
+          name: "Alex",
+          gender: Gender.male,
+          age: 40,
+          contact: "098789987",
+        );
+        final date = promptDateTime(
+          "Enter Meeting Date and Time (YYYY-MM-DD HH:MM):",
+        );
+        final reason = promptString("Enter meeting Reason:");
+        final notes = promptString("Enter Initial meeting notes:");
+
+        doctor.createMeeting(mockPatient, date, reason, notes);
+        final newMeetingId = doctor.appointments.last.id; 
+
+        print("Meeting scheduled successfully! Patient: ${mockPatient.name}, **ID is: $newMeetingId**");
+        break;
+      case '6':
+        final meeting = doctor.appointments.whereType<Meeting>().toSet();
+        if (meeting.isEmpty) {
+          print("No meeting found to add notes");
+          break;
+        }
+        print("Select meeting to add notes");
+        for (var m in meeting) {
+          print("ID: ${m.id} Patients: ${m.patient.name}, Date: ${m.date}");
+        }
+        final idStr = promptString("Enter meeting ID:");
+        final id = int.tryParse(idStr);
+        if (id == null) {
+          print("Invalid ID format");
+          break;
+        }
+        final targetMeeting = meeting.firstWhere(
+          (m) => m.id == id,
+          orElse: () => throw Exception("Meeting not found."),
+        );
+        final note = promptString("Enter note to add:");
+        targetMeeting.addMeetingNotes(note);
+        print("Note added to Meeting ID **$id**.");
+        break;
+      case '0':
+        print("Returning to Main Menu.");
+        return;
+      default:
+        print("Invalid input");
+        break;
+    }
   }
 }
