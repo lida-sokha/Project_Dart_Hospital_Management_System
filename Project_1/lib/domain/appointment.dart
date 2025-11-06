@@ -114,11 +114,11 @@ class Appointment {
 
   void cancel() => status = AppointmentStatus.cancelled;
 
-  void complete() { // Corrected from complate()
+  void complete() { 
     status = AppointmentStatus.completed;
     print("Appointment $id marked as completed.");
   }
-  // the doctor ready have this function
+  
   void rescheduleAppointment(DateTime newDate, DateTime newTime) {
     date = DateTime(
       newDate.year,
