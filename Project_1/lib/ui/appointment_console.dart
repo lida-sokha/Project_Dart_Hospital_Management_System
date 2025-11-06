@@ -1,7 +1,11 @@
+import 'dart:ffi';
+
+import '../data/appointment_file_provider.dart';
 import 'package:project_1/domain/appointment.dart';
 import 'dart:io';
 
-void main() {
+void main() async {
+  final fileProvider = AppointmentFileProvider();
   Doctor doctor = Doctor(
     id: 1,
     name: "Dr.Ronan",
@@ -15,6 +19,7 @@ void main() {
     age: 22,
     contact: "0987654321",
   );
+
   Appointment appointment = Appointment(
     id: 1,
     date: DateTime.now(),
@@ -41,13 +46,14 @@ void main() {
 
     switch (choice) {
       case '1':
-        doctorMenu(doctor, patient, appointment, meeting);
+        doctorMenu(doctor, patient, appointment, meeting, fileProvider);
         break;
       case '2':
-        patientMenu(patient, doctor);
+        patientMenu(patient, doctor, fileProvider);
         break;
       case '3':
         print("Exiting");
+        await fileProvider.saveAppointments([...doctor.appointments]);
         return;
       default:
         print("Ivalid choice");
@@ -55,7 +61,11 @@ void main() {
   }
 }
 
-void patientMenu(Patient patient, Doctor doctor) {
+void patientMenu(
+  Patient patient,
+  Doctor doctor,
+  AppointmentFileProvider fileProvider,
+) {
   while (true) {
     print("\n=== Patient Menu ===");
     print("1. Book Appointment");
@@ -91,8 +101,12 @@ void patientMenu(Patient patient, Doctor doctor) {
             timeParts[1],
           );
 
-          patient.bookAppointment(doctor, appointmentDate, reason);
           print("Appointment booked successfully on $appointmentDate!");
+
+          patient.bookAppointment(doctor, appointmentDate, reason);
+
+          // Save all appointments to file
+          fileProvider.saveAppointments(doctor.appointments);
         } catch (e) {
           print("Invalid date or time format. Please try again.");
         }
@@ -122,7 +136,11 @@ void patientMenu(Patient patient, Doctor doctor) {
         if (appointmentId != null) {
           try {
             patient.cancelAppointment(appointmentId);
+            doctor.appointments
+                .removeWhere((a) => a.id == appointmentId);
             print("Appointment cancelled successfully!");
+
+            fileProvider.saveAppointments(doctor.appointments);
           } catch (e) {
             print(e);
           }
@@ -183,6 +201,7 @@ void doctorMenu(
   Patient patient,
   Appointment appointment,
   Meeting meeting,
+  AppointmentFileProvider fileProvider,
 ) {
   while (true) {
     print("\n=== Doctor Menu ===");
@@ -238,7 +257,8 @@ void doctorMenu(
           orElse: () => throw Exception("Appointment not found."),
         );
         appointmentToCancel.patient.cancelAppointment(id);
-        print("Appointment $id successfully **cancelled**.");
+        print("Appointment $id successfully cancelled.");
+        fileProvider.saveAppointments(doctor.appointments);
         break;
 
       case '4':
@@ -262,9 +282,12 @@ void doctorMenu(
         final notes = promptString("Enter Initial meeting notes:");
 
         doctor.createMeeting(mockPatient, date, reason, notes);
-        final newMeetingId = doctor.appointments.last.id; 
+        final newMeetingId = doctor.appointments.last.id;
 
-        print("Meeting scheduled successfully! Patient: ${mockPatient.name}, **ID is: $newMeetingId**");
+        print(
+          "Meeting scheduled successfully! Patient: ${mockPatient.name}, ID is: $newMeetingId",
+        );
+        fileProvider.saveAppointments(doctor.appointments);
         break;
       case '6':
         final meeting = doctor.appointments.whereType<Meeting>().toSet();
@@ -288,7 +311,8 @@ void doctorMenu(
         );
         final note = promptString("Enter note to add:");
         targetMeeting.addMeetingNotes(note);
-        print("Note added to Meeting ID **$id**.");
+        print("Note added to Meeting ID $id.");
+        fileProvider.saveAppointments(doctor.appointments);
         break;
       case '0':
         print("Returning to Main Menu.");

@@ -129,9 +129,9 @@
     },
     {
       "name": "meta",
-      "rootUri": "file:///C:/Users/sokha/AppData/Local/Pub/Cache/hosted/pub.dev/meta-1.17.0",
+      "rootUri": "file:///C:/Users/sokha/AppData/Local/Pub/Cache/hosted/pub.dev/meta-1.16.0",
       "packageUri": "lib/",
-      "languageVersion": "3.5"
+      "languageVersion": "2.12"
     },
     {
       "name": "mime",

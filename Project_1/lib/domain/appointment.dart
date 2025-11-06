@@ -20,7 +20,25 @@ class Patient {
     required this.contact,
   });
 
-  void bookAppointment(Doctor doctor, DateTime date, String reason) {
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'Gender': gender.name,
+    'Age': age,
+    'Contact': contact,
+  };
+
+  factory Patient.fromJson(Map<String, dynamic> json) => Patient(
+        id: json['id'],
+        name: json['name'],
+        gender: Gender.values.firstWhere(
+          (e) => e.name == json['gender'],
+        ),
+        age: json['age'],
+        contact: json['contact'],
+      );
+
+  Appointment bookAppointment(Doctor doctor, DateTime date, String reason) {
     final appointment = Appointment(
       id: DateTime.now().millisecondsSinceEpoch,
       date: date,
@@ -31,6 +49,7 @@ class Patient {
     );
     appointments.add(appointment);
     doctor.appointments.add(appointment);
+    return appointment;
   }
 
   void viewAppointments() {
@@ -73,6 +92,26 @@ class Appointment {
     required this.patient,
   });
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'date': date.toIso8601String(),
+    'reason': reason,
+    'status': status.name,
+    'doctor': doctor.toJson(),
+    'patient': patient.toJson(),
+  };
+
+  factory Appointment.fromJson(Map<String, dynamic> json) => Appointment(
+    id: json['id'],
+    date: DateTime.parse(json['date']),
+    reason: json['reason'],
+    status: AppointmentStatus.values.firstWhere(
+      (s) => s.name == json['status'],
+    ),
+    doctor: Doctor.fromJson(json['doctor']),
+    patient: Patient.fromJson(json['patient']),
+  );
+
   void schedule() => status = AppointmentStatus.scheduled;
 
   void cancel() => status = AppointmentStatus.cancelled;
@@ -112,6 +151,20 @@ class Doctor {
     required this.specialization,
     required this.contact,
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'specialization': specialization,
+    'contact': contact,
+  };
+
+  factory Doctor.fromJson(Map<String, dynamic> json) => Doctor(
+    id: json['id'],
+    name: json['name'],
+    specialization: json['specialization'],
+    contact: json['contact'],
+  );
 
   void viewAppointments() {
     if (appointments.isEmpty) {
@@ -172,9 +225,8 @@ class Meeting extends Appointment {
   }
 
   @override
-void rescheduleAppointment(DateTime newDate, DateTime newTime) {
-  super.rescheduleAppointment(newDate, newTime);
-  print("Notification sent to all meeting participants.");
-}
-
+  void rescheduleAppointment(DateTime newDate, DateTime newTime) {
+    super.rescheduleAppointment(newDate, newTime);
+    print("Notification sent to all meeting participants.");
+  }
 }
