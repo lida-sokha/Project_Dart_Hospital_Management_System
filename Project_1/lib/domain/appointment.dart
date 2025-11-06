@@ -29,14 +29,12 @@ class Patient {
   };
 
   factory Patient.fromJson(Map<String, dynamic> json) => Patient(
-        id: json['id'],
-        name: json['name'],
-        gender: Gender.values.firstWhere(
-          (e) => e.name == json['gender'],
-        ),
-        age: json['age'],
-        contact: json['contact'],
-      );
+    id: json['id'],
+    name: json['name'],
+    gender: Gender.values.firstWhere((e) => e.name == json['gender']),
+    age: json['age'],
+    contact: json['contact'],
+  );
 
   Appointment bookAppointment(Doctor doctor, DateTime date, String reason) {
     final appointment = Appointment(
@@ -115,6 +113,11 @@ class Appointment {
   void schedule() => status = AppointmentStatus.scheduled;
 
   void cancel() => status = AppointmentStatus.cancelled;
+
+  void complete() { // Corrected from complate()
+    status = AppointmentStatus.completed;
+    print("Appointment $id marked as completed.");
+  }
   // the doctor ready have this function
   void rescheduleAppointment(DateTime newDate, DateTime newTime) {
     date = DateTime(
@@ -222,6 +225,12 @@ class Meeting extends Appointment {
 
   void addMeetingNotes(String note) {
     notes += "\n- $note";
+  }
+
+  void holdMeeting() {
+    status = AppointmentStatus.completed;
+    print(" Meeting $id with Patient ${patient.name} has concluded. Status updated to **COMPLETED**.");
+    addMeetingNotes("Meeting concluded successfully."); 
   }
 
   @override
